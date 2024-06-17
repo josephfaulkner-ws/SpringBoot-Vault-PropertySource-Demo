@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: vault-config-demo
+    message: Message from application.yml
+    secret-message: ${config.message:Default secret message from application.yml.}

@@ -1,0 +1,35 @@
+x-common-env: &cenv
+  POSTGRES_PASSWORD: postgres-admin-password
+  POSTGRES_USER: postgres
+  POSTGRES_DB: payments
+  VAULT_TOKEN: vault-root-password
+  VAULT_ADDR: http://vault:8200
+
+services:
+
+  vault:
+    image: hashicorp/vault:latest
+    command: |
+      vault server -dev -dev-listen-address=0.0.0.0:8200
+    environment:
+      <<: *cenv
+      VAULT_DEV_ROOT_TOKEN_ID: "vault-root-password"
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+
+  vault-configure:
+    image: hashicorp/vault:latest
+    restart: no
+    command: >
+      sh -c "vault kv put secret/vault-config-demo config.message='This is a secret message stored in Vault!'"
+    environment:
+      <<: *cenv
+    cap_add:
+      - IPC_LOCK
+    depends_on:
+      vault:
+        condition: service_healthy
